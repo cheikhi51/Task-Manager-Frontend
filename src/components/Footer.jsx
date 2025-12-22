@@ -9,6 +9,7 @@ function Footer() {
         {/* Logo */}
         <div className="footer-brand">
         <a href="#home" className="footer-logo">
+            <img src={logoImage} style={{ height: "40px", width: "40px" }} alt="Task Manager Logo" />
             <span className="logo-primary">Task</span>
             <span className="logo-secondary">Manager</span>
         </a>
@@ -31,13 +32,13 @@ function Footer() {
         <div className="footer-contact">
           <h4>Contact</h4>
           <p>Email : support@taskmanager.com</p>
-          <p>Téléphone : +212 5 22 50 43 23</p>
-          <p>Adresse : Rabat, Maroc</p>
+          <p>Phone : +212 5 22 50 43 23</p>
+          <p>Address : Rabat, Morocco</p>
         </div>
 
         {/* Social media */}
         <div className="footer-social">
-          <h4>Suivez-nous</h4>
+          <h4>Follow Us</h4>
           <div className="social-icons">
             <MdEmail />
             <FaFacebook />

@@ -18,6 +18,13 @@
 }
 
 /* Logo */
+.navbar-logo {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+}
 .navbar-logo a {
   font-size: 1.5rem;
   font-weight: 700;
@@ -736,15 +743,15 @@ button {
   gap: 2.5rem;
 }
 
-/* Brand */
-.footer-brand img {
-  width: 140px;
-  margin-bottom: 1rem;
-}
+/* Branding */
 .footer-logo {
   font-size: 1.5rem;
   font-weight: 700;
   text-decoration: none;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  margin-bottom: 3px;
 }
 
 .footer-brand p {

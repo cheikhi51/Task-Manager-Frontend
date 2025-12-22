@@ -10,6 +10,7 @@ const Navbar = () => {
     <nav className="navbar">
       {/* Logo */}
       <div className="navbar-logo">
+        <img src="/task-manager-logo.png" style={{ height: "40px", width: "40px" }} alt="Task Manager Logo" />
         <Link to="/">
           <span className="logo-primary">Task</span>
           <span className="logo-secondary">Manager</span>
