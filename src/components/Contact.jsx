@@ -24,7 +24,7 @@ function Contact() {
 
             <ul>
               <li><strong>Email :</strong> support@taskmanager.com</li>
-              <li><strong>Phone :</strong> +212 6 00 00 00 00</li>
+              <li><strong>Phone :</strong> +212 5 22 50 43 23</li>
               <li><strong>Address :</strong> Rabat, Morocco</li>
             </ul>
           </div>
