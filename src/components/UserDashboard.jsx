@@ -14,6 +14,7 @@ const UserDashboard = ({setAuthToken}) => {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [error, setError] = useState('');
   const [showLogout, setShowLogout] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const [projectForm, setProjectForm] = useState({
     title: '',
@@ -36,6 +37,7 @@ const UserDashboard = ({setAuthToken}) => {
 
   useEffect(() => {
     fetchProjects();
+    fetchCurrentUser();
   }, []);
 
   useEffect(() => {
@@ -113,6 +115,16 @@ const UserDashboard = ({setAuthToken}) => {
   }
 };
 
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/auth/me", {
+        headers: getHeaders()
+      });
+      setCurrentUser(response.data);
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+    }
+  };
 
   const handleCreateTask = async () => {
     if (!selectedProject || !taskForm.title || !taskForm.description) return;
@@ -176,7 +188,7 @@ const UserDashboard = ({setAuthToken}) => {
     <div className="dashboard">
       <header className="header">
         <div className="header-content">
-          <h1>Task Manager</h1>
+          <h1>Hello , <span style={{color:"#16bde7ff"}}>{currentUser?.name || 'User'}</span></h1>
           {showLogout &&
             <Logout setAuthToken={setAuthToken} setShowLogout={setShowLogout} />
           }

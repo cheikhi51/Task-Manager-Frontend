@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { GoEye } from "react-icons/go";
+import { GoEyeClosed } from "react-icons/go";
 
 function Signup() {
   const navigate = useNavigate();
+  const [inputType1, setInputType1] = useState("password");
+  const [inputType2, setInputType2] = useState("password");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -34,7 +38,7 @@ function Signup() {
 
     try {
       // 🔗 Spring Boot endpoint (adjust URL if needed)
-      const response = await fetch("http://localhost:8080/api/auth/signup", {
+      const response = await fetch("http://localhost:8080/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -83,23 +87,49 @@ function Signup() {
             required
           />
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
+          <div className="password-wrapper">
+                      <input
+                        type={inputType1}
+                        name="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        className="password-input"
+                        required
+                      />
+          
+                      <span
+                        type="button"
+                        onClick={() =>
+                          setInputType1(inputType1 === "password" ? "text" : "password")
+                        }
+                        className="show-password"
+                      >
+                        {inputType1 === "password" ? <GoEye /> : <GoEyeClosed />}
+                      </span>
+                    </div>
 
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-          />
+                    <div className="password-wrapper">
+                                <input
+                                  type={inputType2}
+                                  name="confirmPassword"
+                                  placeholder="Confirm password"
+                                  value={formData.confirmPassword}
+                                  onChange={handleChange}
+                                  className="password-input"
+                                  required
+                                />
+                    
+                                <span
+                                  type="button"
+                                  onClick={() =>
+                                    setInputType2(inputType2 === "password" ? "text" : "password")
+                                  }
+                                  className="show-password"
+                                >
+                                  {inputType2 === "password" ? <GoEye /> : <GoEyeClosed />}
+                                </span>
+                              </div>
 
           <button type="submit" disabled={loading}>
             {loading ? "Creating account..." : "Sign Up"}

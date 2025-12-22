@@ -22,7 +22,7 @@ function Home() {
             <Link to="/signup" className="btn-primary">
               Get Started
             </Link>
-            <a href="#contact" className="btn-secondary">
+            <a href="#contact" className="btn-secondary1">
               Contact Us
             </a>
           </div>

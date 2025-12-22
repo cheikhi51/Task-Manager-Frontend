@@ -28,15 +28,14 @@ function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 2000);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, []);
   if (loading){
     return (
       <div className='logo-loader'>
-        <img src="./TaskManagerLogo.png" alt="TaskManager logo" className='task-manager-logo'/>
-        <div className="logo-text"><span className='first-part'>Task</span><span className='second-part'>Manager</span></div>
+        <img src="/task-manager-logo.png" alt="TaskManager logo" className='task-manager-logo pop-in' style={{width:"40px",height:"40px"}}/>
       </div>
     )
   }

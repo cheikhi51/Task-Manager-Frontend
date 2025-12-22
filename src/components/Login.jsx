@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
+import { GoEye } from "react-icons/go";
+import { GoEyeClosed } from "react-icons/go";
 function Login({ setAuthToken }) {
   const navigate = useNavigate();
-
+  const [inputType, setInputType] = useState("password");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -67,14 +68,29 @@ function Login({ setAuthToken }) {
             required
           />
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
+          <div className="password-wrapper">
+            <input
+              type={inputType}
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              className="password-input"
+              required
+            />
+
+            <span
+              type="button"
+              onClick={() =>
+                setInputType(inputType === "password" ? "text" : "password")
+              }
+              className="show-password"
+            >
+              {inputType === "password" ? <GoEye /> : <GoEyeClosed />}
+            </span>
+          </div>
+
+
 
           <button type="submit" disabled={loading}>
             {loading ? "Logging in..." : "Login"}

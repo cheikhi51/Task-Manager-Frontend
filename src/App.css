@@ -38,6 +38,28 @@
 .logo-secondary {
   color: #1a1a1a;
 }
+@keyframes popInAnimation {
+  0%{
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  30%{
+    opacity: 1;
+    transform: scale(1);
+  }
+  70%{
+    transform: scale(0.7);
+    opacity: 1;
+  }
+  100%{
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.pop-in{
+  animation: popInAnimation 1s ease-in;
+}
 
 /* Navigation links */
 .navbar-links {
@@ -243,7 +265,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #007bff, #6610f2);
+  background: linear-gradient(135deg, #69affa, #9f65fc);
 }
 
 .signup-card {
@@ -319,7 +341,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #007bff, #6610f2);
+  background: linear-gradient(135deg, #69affa, #9f65fc);
 }
 
 .login-card {
@@ -371,7 +393,6 @@ button {
   background-color: #6c757d;
   cursor: not-allowed;
 }
-
 .error {
   background-color: #ffe0e0;
   color: #b00020;
@@ -444,7 +465,7 @@ button {
   background-color: #0056b3;
 }
 
-.btn-secondary {
+.btn-secondary1 {
   border: 1px solid #007bff;
   color: #007bff;
   padding: 0.75rem 1.75rem;
@@ -454,7 +475,7 @@ button {
   transition: all 0.3s;
 }
 
-.btn-secondary:hover {
+.btn-secondary1:hover {
   background-color: #007bff;
   color: #fff;
 }
@@ -1521,4 +1542,31 @@ button {
 .btn-logout:active,
 .btn-cancel:active {
   transform: translateY(0);
+}
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input {
+  width: 100%;
+  padding-right: 45px;
+}
+
+.show-password {
+  position: absolute;
+  bottom: 35%;
+  right: 12px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+}
+
+.show-password:hover {
+  color: #000;
 }
