@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Logout from './Logout.jsx';
 import { TbLogout } from "react-icons/tb";
+import { MdDelete } from "react-icons/md";
+import axios from 'axios';
 const API_BASE_URL = 'http://localhost:8080/api';
 
 const UserDashboard = ({setAuthToken}) => {
@@ -14,7 +16,7 @@ const UserDashboard = ({setAuthToken}) => {
   const [showLogout, setShowLogout] = useState(false);
 
   const [projectForm, setProjectForm] = useState({
-    name: '',
+    title: '',
     description: ''
   });
   
@@ -78,9 +80,6 @@ const UserDashboard = ({setAuthToken}) => {
   }
 };
 
-console.log(tasks);
-
-
   const fetchProjectProgress = async (projectId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/projects/${projectId}/progress`, {
@@ -96,26 +95,24 @@ console.log(tasks);
   };
 
   const handleCreateProject = async () => {
-    if (!projectForm.name || !projectForm.description) return;
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/projects`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify(projectForm)
-      });
-      
-      if (response.ok) {
-        const newProject = await response.json();
-        setProjects([...projects, newProject]);
-        setProjectForm({ name: '', description: '' });
-        setShowProjectModal(false);
-        setSelectedProject(newProject);
-      }
-    } catch (err) {
-      setError('Error creating project');
-    }
-  };
+  if (!projectForm.title || !projectForm.description) return;
+
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/projects`,
+      projectForm,
+      { headers: getHeaders() } 
+    );
+    console.log(response.data);
+    setProjects([...projects, response.data]);
+    setShowProjectModal(false);
+    setProjectForm({ title: '', description: '' });
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+    setError('Error creating project');
+  }
+};
+
 
   const handleCreateTask = async () => {
     if (!selectedProject || !taskForm.title || !taskForm.description) return;
@@ -217,7 +214,7 @@ console.log(tasks);
                     onClick={() => setSelectedProject(project)}
                     className={`project-item ${selectedProject?.id === project.id ? 'active' : ''}`}
                   >
-                    <h3 className="project-name">{project.name}</h3>
+                    <h3 className="project-name">{project.title}</h3>
                     <p className="project-description">{project.description}</p>
                   </button>
                 ))}
@@ -238,7 +235,7 @@ console.log(tasks);
                 {/* Project Header */}
                 <div className="card">
                   <div className="project-header">
-                    <h2 className="project-title">{selectedProject.name}</h2>
+                    <h2 className="project-title">{selectedProject.title}</h2>
                     <p className="project-desc">{selectedProject.description}</p>
                     
                     {projectProgress && (
@@ -252,7 +249,7 @@ console.log(tasks);
                         <div className="progress-bar">
                           <div
                             className="progress-fill"
-                            style={{ width: `${projectProgress.completionPercentage}%` }}
+                            style={{ width: `${projectProgress.progressPercentage}%` }}
                           />
                         </div>
                         
@@ -278,11 +275,17 @@ console.log(tasks);
                     {tasks.map(task => (
                       <div key={task.id} className="task-item">
                         <button
-                          onClick={() => !task.completed && handleCompleteTask(task.id)}
+                          onClick={() => {
+                            if (!task.completed) {
+                              if (window.confirm('Are you sure you want to mark this task as completed?')) {
+                                handleCompleteTask(task.id);
+                              }
+                            }
+                          }}
                           className="task-checkbox"
                           disabled={task.completed}
                         >
-                          {task.completed ? (
+                            {task.completed ? (
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="icon-completed">
                               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                               <polyline points="22 4 12 14.01 9 11.01" />
@@ -309,11 +312,12 @@ console.log(tasks);
                           </div>
                         </div>
                         
-                        <button onClick={() => handleDeleteTask(task.id)} className="delete-btn">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          </svg>
+                        <button className="delete-btn" onClick={() => {
+                          if (window.confirm('Are you sure you want to delete this task ?')) {
+                            handleDeleteTask(task.id);
+                          }
+                        }}>
+                          <MdDelete /> 
                         </button>
                       </div>
                     ))}
@@ -350,8 +354,8 @@ console.log(tasks);
                 <label className="form-label">Project Name *</label>
                 <input
                   type="text"
-                  value={projectForm.name}
-                  onChange={(e) => setProjectForm({ ...projectForm, name: e.target.value })}
+                  value={projectForm.title}
+                  onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
                   className="form-input"
                   placeholder="Enter project name"
                 />

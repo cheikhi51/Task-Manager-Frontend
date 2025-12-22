@@ -1390,7 +1390,7 @@ button {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(252, 247, 247, 0.75);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -1506,13 +1506,13 @@ button {
 }
 
 .btn-cancel {
-  background: transparent;
-  color: var(--neutral-medium);
+  background: gray;
+  color: white;
   border: 2px solid var(--neutral-medium);
 }
 
 .btn-cancel:hover {
-  background: var(--neutral-medium);
+  background: rgb(57, 57, 57);
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(39, 40, 40, 0.3);

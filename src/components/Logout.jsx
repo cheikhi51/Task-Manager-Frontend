@@ -19,13 +19,13 @@ function Logout({ setAuthToken, setShowLogout }) {
         <div className="logout-overlay">
             <div className="logout-card">
                 <TbLogout className="logout-icon" />
-                <h2>Voulez-vous vraiment vous déconnecter ?</h2>
+                <h2>Do you really want to log out?</h2>
                 <div className="logout-buttons">
                     <button className="btn-logout" onClick={handleLogout}>
-                        Déconnecter
+                        Log Out
                     </button>
                     <button className="btn-cancel" onClick={handleCancelLogout}>
-                        Annuler
+                        Cancel
                     </button>
                 </div>
             </div>
