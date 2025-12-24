@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { GoEye } from "react-icons/go";
 import { GoEyeClosed } from "react-icons/go";
 
+import api from "../api/axios"; 
+
 function Signup() {
   const navigate = useNavigate();
   const [inputType1, setInputType1] = useState("password");
@@ -38,14 +40,10 @@ function Signup() {
 
     try {
       // 🔗 Spring Boot endpoint (adjust URL if needed)
-      const response = await fetch("http://localhost:8080/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        }),
+      const response = await api.post("/auth/register", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
       });
 
       if (!response.ok) {

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoEye } from "react-icons/go";
 import { GoEyeClosed } from "react-icons/go";
+import api from "../api/axios";
 function Login({ setAuthToken }) {
   const navigate = useNavigate();
   const [inputType, setInputType] = useState("password");
@@ -26,19 +27,10 @@ function Login({ setAuthToken }) {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await api.post("/auth/login", formData);
 
-      if (!response.ok) {
-        throw new Error("Invalid credentials");
-      }
+      const data = response.data;
 
-      const data = await response.json();
-
-      // 🔐 Store JWT
       localStorage.setItem("jwtToken", data.token);
       setAuthToken(data.token);
 

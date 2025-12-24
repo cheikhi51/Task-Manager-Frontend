@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Logout from './Logout.jsx';
 import { TbLogout } from "react-icons/tb";
 import { MdDelete } from "react-icons/md";
-import axios from 'axios';
-const API_BASE_URL = 'http://localhost:8080/api';
+import api from '../api/axios';
 
 const UserDashboard = ({setAuthToken}) => {
   const [projects, setProjects] = useState([]);
@@ -28,12 +27,10 @@ const UserDashboard = ({setAuthToken}) => {
     dueDate: ''
   });
 
-  const getAuthToken = () => localStorage.getItem('jwtToken');
+  
 
-  const getHeaders = () => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${getAuthToken()}`
-  });
+
+  /* -------------------- EFFECTS -------------------- */
 
   useEffect(() => {
     fetchProjects();
@@ -47,82 +44,61 @@ const UserDashboard = ({setAuthToken}) => {
     }
   }, [selectedProject]);
 
+  /* -------------------- API CALLS -------------------- */
+
   const fetchProjects = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/projects`, {
-        headers: getHeaders()
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setProjects(data);
-        if (data.length > 0 && !selectedProject) {
-          setSelectedProject(data[0]);
-        }
-      } else {
-        setError('Failed to fetch projects');
+      const response = await api.get("/projects");
+      const data = response.data;
+
+      setProjects(data);
+      if (data.length > 0 && !selectedProject) {
+        setSelectedProject(data[0]);
       }
     } catch (err) {
-      setError('Error connecting to server');
+      setError("Failed to fetch projects");
     }
   };
 
   const fetchProjectTasks = async (projectId) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/projects/${projectId}/tasks`, {
-      headers: getHeaders()
-    });
-    if (response.ok) {
-      const data = await response.json();
-      // Ensure every task has a priority
-      const normalizedTasks = data.map(task => ({ priority: 'MEDIUM', ...task }));
-      setTasks(normalizedTasks);
-    }
-  } catch (err) {
-    console.error('Error fetching tasks:', err);
-  }
-};
-
-  const fetchProjectProgress = async (projectId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/projects/${projectId}/progress`, {
-        headers: getHeaders()
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setProjectProgress(data);
-      }
+      const response = await api.get(`/projects/${projectId}/tasks`);
+      setTasks(response.data.map(t => ({ priority: "MEDIUM", ...t })));
     } catch (err) {
-      console.error('Error fetching progress:', err);
+      console.error("Error fetching tasks:", err);
     }
   };
 
-  const handleCreateProject = async () => {
-  if (!projectForm.title || !projectForm.description) return;
-
-  try {
-    const response = await axios.post(
-      `${API_BASE_URL}/projects`,
-      projectForm,
-      { headers: getHeaders() } 
-    );
-    console.log(response.data);
-    setProjects([...projects, response.data]);
-    setShowProjectModal(false);
-    setProjectForm({ title: '', description: '' });
-  } catch (err) {
-    console.error(err.response?.data || err.message);
-    setError('Error creating project');
-  }
-};
+  const fetchProjectProgress = async (projectId) => {
+    try {
+      const response = await api.get(`/projects/${projectId}/progress`);
+      setProjectProgress(response.data);
+    } catch (err) {
+      console.error("Error fetching progress:", err);
+    }
+  };
 
   const fetchCurrentUser = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/auth/me", {
-        headers: getHeaders()
-      });
+      const response = await api.get("/auth/me");
       setCurrentUser(response.data);
     } catch (err) {
-      console.error(err.response?.data || err.message);
+      console.error(err);
+    }
+  };
+
+  /* -------------------- ACTIONS -------------------- */
+
+  const handleCreateProject = async () => {
+    if (!projectForm.title || !projectForm.description) return;
+
+    try {
+      const response = await api.post("/projects", projectForm);
+      setProjects([...projects, response.data]);
+      setProjectForm({ title: "", description: "" });
+      setShowProjectModal(false);
+    } catch (err) {
+      setError("Error creating project");
     }
   };
 
@@ -130,55 +106,39 @@ const UserDashboard = ({setAuthToken}) => {
     if (!selectedProject || !taskForm.title || !taskForm.description) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/projects/${selectedProject.id}/tasks`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify(taskForm)
-      });
-      
-      if (response.ok) {
-        const newTask = await response.json();
-        setTasks([...tasks, newTask]);
-        setTaskForm({ title: '', description: '', priority: 'MEDIUM', dueDate: '' });
-        setShowTaskModal(false);
-        fetchProjectProgress(selectedProject.id);
-      }
+      const response = await api.post(
+        `/projects/${selectedProject.id}/tasks`,
+        taskForm
+      );
+
+      setTasks([...tasks, response.data]);
+      setTaskForm({ title: "", description: "", priority: "MEDIUM", dueDate: "" });
+      setShowTaskModal(false);
+      fetchProjectProgress(selectedProject.id);
     } catch (err) {
-      setError('Error creating task');
+      setError("Error creating task");
     }
   };
 
   const handleCompleteTask = async (taskId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/complete`, {
-        method: 'PUT',
-        headers: getHeaders()
-      });
-      
-      if (response.ok) {
-        setTasks(tasks.map(task => 
-          task.id === taskId ? { ...task, completed: true } : task
-        ));
-        fetchProjectProgress(selectedProject.id);
-      }
+      await api.put(`/tasks/${taskId}/complete`);
+      setTasks(tasks.map(task =>
+        task.id === taskId ? { ...task, completed: true } : task
+      ));
+      fetchProjectProgress(selectedProject.id);
     } catch (err) {
-      setError('Error completing task');
+      setError("Error completing task");
     }
   };
 
   const handleDeleteTask = async (taskId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
-        method: 'DELETE',
-        headers: getHeaders()
-      });
-      
-      if (response.ok) {
-        setTasks(tasks.filter(task => task.id !== taskId));
-        fetchProjectProgress(selectedProject.id);
-      }
+      await api.delete(`/tasks/${taskId}`);
+      setTasks(tasks.filter(task => task.id !== taskId));
+      fetchProjectProgress(selectedProject.id);
     } catch (err) {
-      setError('Error deleting task');
+      setError("Error deleting task");
     }
   };
 
