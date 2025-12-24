@@ -487,6 +487,18 @@ button {
   margin: auto;
 }
 
+.no-page-section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+}
+.no-page-title {
+  font-size: 2.5rem;
+  color: #333;
+}
 /* 📱 Responsive */
 @media (max-width: 900px) {
   .home-container {
