@@ -1,5 +1,5 @@
 # Stage de build - Use Node.js 20 or 22 (Vite requirement)
-FROM node:22-alpine AS build
+FROM node:20-alpine AS build
 
 # Set working directory
 WORKDIR /app
