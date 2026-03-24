@@ -6,7 +6,7 @@ import { Navigate } from 'react-router-dom';
 import UserDashboard from './components/UserDashboard';
 import Login from './components/Login';
 import Signup from './components/Signup';
-import NoPage from './components/NoPage';
+import NoPage from './components/Nopage';
 import './App.css';
 
 function App() {
