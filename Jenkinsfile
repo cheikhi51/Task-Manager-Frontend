@@ -38,6 +38,7 @@ pipeline {
               credentialsId: 'git-creds'
       }
     }
+    }
 
     stage('Backend Build & Test') {
       steps {
