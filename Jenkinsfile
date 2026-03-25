@@ -27,6 +27,11 @@ pipeline {
               branch: 'main',
               credentialsId: 'git-creds'
         }
+        dir('terraform'){
+          git url: 'https://github.com/cheikhi51/Task-manager-infra.git',
+              branch: 'main',
+              credentialsId: 'git-creds'
+        }
       }
     }
 
@@ -100,7 +105,7 @@ pipeline {
       }
     }
 
-    stage('Terraform Apply (Namespace)') {
+    stage('Terraform Apply') {
       steps {
         dir('terraform') {
           bat """
