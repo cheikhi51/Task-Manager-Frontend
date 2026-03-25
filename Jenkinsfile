@@ -32,6 +32,10 @@ pipeline {
               branch: 'main',
               credentialsId: 'git-creds'
         }
+        dir('ArgoCD') {
+          git url: 'https://github.com/cheikhi51/Task-Manager-K8s.git',
+              branch: 'main',
+              credentialsId: 'git-creds'
       }
     }
 
@@ -115,6 +119,34 @@ pipeline {
         }
       }
     }
+
+    stage('Update GitOps Repo') {
+  steps {
+    dir('ArgoCD') {
+      withCredentials([usernamePassword(
+        credentialsId: 'git-creds',
+        usernameVariable: 'GIT_USERNAME',
+        passwordVariable: 'GIT_PASSWORD'
+      )]) {
+
+        bat '''
+          git config user.email "ci@jenkins.com"
+          git config user.name "Jenkins CI"
+
+          REM Update backend image
+          powershell -Command "(Get-Content task-manager-backend.yaml) -replace 'image: .*', 'image: mohamed510/task-manager-backend:latest' | Set-Content task-manager-backend.yaml"
+
+          REM Update frontend image
+          powershell -Command "(Get-Content task-manager-frontend.yaml) -replace 'image: .*', 'image: mohamed510/task-manager-frontend:latest' | Set-Content task-manager-frontend.yaml"
+
+          git add .
+          git commit -m "Update image to latest build"
+          git push https://%GIT_USERNAME%:%GIT_PASSWORD%@github.com/cheikhi51/Task-Manager-K8s.git HEAD:main
+        '''
+      }
+    }
+  }
+}
 
   }
 
