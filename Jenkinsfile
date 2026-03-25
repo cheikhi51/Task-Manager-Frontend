@@ -100,6 +100,17 @@ pipeline {
       }
     }
 
+    stage('Terraform Apply (Namespace)') {
+      steps {
+        dir('terraform') {
+          bat """
+            terraform init
+            terraform apply -auto-approve -var="namespace=%NAMESPACE%"
+          """
+        }
+      }
+    }
+
   }
 
   post {
