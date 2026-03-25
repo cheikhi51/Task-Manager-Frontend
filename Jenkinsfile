@@ -123,10 +123,6 @@ pipeline {
       echo '========================================='
       echo 'Pipeline completed successfully! ✅'
       echo '========================================='
-      echo 'Access your applications:'
-      echo 'Frontend: kubectl get service healthhub-frontend-service'
-      echo 'Backend: kubectl get service healthhub-backend-service'
-      echo '========================================='
     }
     failure {
       echo '========================================='
