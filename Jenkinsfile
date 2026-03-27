@@ -22,12 +22,12 @@ pipeline {
       steps {
         dir('backend') {
           git url: 'https://github.com/cheikhi51/Task-Manager-Backend.git',
-              branch: "${env.BRANCH_NAME}",
+              branch: "main",
               credentialsId: 'git-creds'
         }
         dir('frontend') {
           git url: 'https://github.com/cheikhi51/Task-Manager-Frontend.git',
-              branch: "${env.BRANCH_NAME}",
+              branch: "main",
               credentialsId: 'git-creds'
         }
         dir('terraform'){
