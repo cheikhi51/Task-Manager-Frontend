@@ -22,12 +22,12 @@ pipeline {
       steps {
         dir('backend') {
           git url: 'https://github.com/cheikhi51/Task-Manager-Backend.git',
-              branch: "main",
+              branch: env.BRANCH_NAME,
               credentialsId: 'git-creds'
         }
         dir('frontend') {
           git url: 'https://github.com/cheikhi51/Task-Manager-Frontend.git',
-              branch: "main",
+              branch: env.BRANCH_NAME,
               credentialsId: 'git-creds'
         }
         dir('terraform'){
@@ -97,8 +97,8 @@ pipeline {
     stage('Build Docker Images') {
       steps {
         bat '''
-          docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} backend
-          docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} frontend
+          docker build -t %BACKEND_IMAGE%:%BUILD_NUMBER% backend
+          docker build -t %FRONTEND_IMAGE%:%BUILD_NUMBER% frontend
         '''
       }
     }
@@ -107,8 +107,8 @@ pipeline {
       steps {
         bat '''
           echo %DOCKERHUB_CREDS_PSW% | docker login -u %DOCKERHUB_CREDS_USR% --password-stdin
-          docker push ${BACKEND_IMAGE}:${BUILD_NUMBER}
-          docker push ${FRONTEND_IMAGE}:${BUILD_NUMBER}
+          docker push %BACKEND_IMAGE%:%BUILD_NUMBER%
+          docker push %FRONTEND_IMAGE%:%BUILD_NUMBER%
         '''
       }
     }
