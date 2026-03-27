@@ -11,6 +11,9 @@ pipeline {
     DOCKERHUB_CREDS = credentials('dockerhub-creds')
     SONAR_PROJECT_KEY_BACKEND = 'backend-app'
     SONAR_PROJECT_KEY_FRONTEND = 'frontend-app'
+    FRONTEND_IMAGE = 'mohamed510/task-manager-frontend'
+    BACKEND_IMAGE = 'mohamed510/task-manager-backend'
+    NAMESPACE = 'default'
   }
 
   stages {
@@ -19,22 +22,22 @@ pipeline {
       steps {
         dir('backend') {
           git url: 'https://github.com/cheikhi51/Task-Manager-Backend.git',
-              branch: 'main',
+              branch: "${env.BRANCH_NAME}",
               credentialsId: 'git-creds'
         }
         dir('frontend') {
           git url: 'https://github.com/cheikhi51/Task-Manager-Frontend.git',
-              branch: 'main',
+              branch: "${env.BRANCH_NAME}",
               credentialsId: 'git-creds'
         }
         dir('terraform'){
           git url: 'https://github.com/cheikhi51/Task-manager-infra.git',
-              branch: 'main',
+              branch: "main",
               credentialsId: 'git-creds'
         }
         dir('ArgoCD') {
           git url: 'https://github.com/cheikhi51/Task-Manager-K8s.git',
-              branch: 'main',
+              branch: "main",
               credentialsId: 'git-creds'
       }
     }
@@ -94,8 +97,8 @@ pipeline {
     stage('Build Docker Images') {
       steps {
         bat '''
-          docker build -t mohamed510/task-manager-backend:latest backend
-          docker build -t mohamed510/task-manager-frontend:latest frontend
+          docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} backend
+          docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} frontend
         '''
       }
     }
@@ -104,13 +107,28 @@ pipeline {
       steps {
         bat '''
           echo %DOCKERHUB_CREDS_PSW% | docker login -u %DOCKERHUB_CREDS_USR% --password-stdin
-          docker push mohamed510/task-manager-backend:latest
-          docker push mohamed510/task-manager-frontend:latest
+          docker push ${BACKEND_IMAGE}:${BUILD_NUMBER}
+          docker push ${FRONTEND_IMAGE}:${BUILD_NUMBER}
         '''
       }
     }
 
+    stage('Generate Namespace') {
+      steps {
+        script {
+          if (env.CHANGE_ID) {
+            env.NAMESPACE = "pr-${env.CHANGE_ID}"
+          } else {
+            env.NAMESPACE = "task-manager-dev"
+          }
+        }
+      }
+    }
+
     stage('Terraform Apply') {
+      when {
+        expression { env.CHANGE_ID == null }
+      }
       steps {
         dir('terraform') {
           bat """
@@ -135,16 +153,29 @@ pipeline {
               git config user.name "Jenkins CI"
 
               REM Update backend image
-              powershell -Command "(Get-Content task-manager-backend.yaml) -replace 'image: .*', 'image: mohamed510/task-manager-backend:latest' | Set-Content task-manager-backend.yaml"
+              powershell -Command "(Get-Content task-manager-backend.yaml) -replace 'image: .*', 'image: ${BACKEND_IMAGE}:${BUILD_NUMBER}' | Set-Content task-manager-backend.yaml"
 
               REM Update frontend image
-              powershell -Command "(Get-Content task-manager-frontend.yaml) -replace 'image: .*', 'image: mohamed510/task-manager-frontend:latest' | Set-Content task-manager-frontend.yaml"
-
+              powershell -Command "(Get-Content task-manager-frontend.yaml) -replace 'image: .*', 'image: ${FRONTEND_IMAGE}:${BUILD_NUMBER}' | Set-Content task-manager-frontend.yaml"
+              
               git add .
-              git commit -m "Update image to latest build"
+              git diff --cached --quiet || git commit -m "Update image to build ${BUILD_NUMBER}"
               git push https://%GIT_USERNAME%:%GIT_PASSWORD%@github.com/cheikhi51/Task-Manager-K8s.git HEAD:main
             '''
           }
+        }
+      }
+    }
+
+    stage('Cleanup PR Environment') {
+      when {
+        expression { env.CHANGE_ID && env.CHANGE_TARGET == 'closed' }
+      }
+      steps {
+        dir('terraform') {
+          bat """
+            terraform destroy -auto-approve -var="namespace=pr-${env.CHANGE_ID}"
+          """
         }
       }
     }
