@@ -133,7 +133,7 @@ pipeline {
         dir('terraform') {
           bat """
             terraform init
-            terraform apply -auto-approve -var="namespace=%NAMESPACE%"
+            terraform apply -auto-approve -var="namespace=%NAMESPACE%" -var="image_tag=%BUILD_NUMBER%"
           """
         }
       }
