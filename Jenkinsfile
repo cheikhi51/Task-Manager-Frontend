@@ -131,9 +131,13 @@ pipeline {
       }
       steps {
         dir('terraform') {
+          script {
+            echo "Using namespace: ${env.NAMESPACE}"
+            echo "Using image tag: ${env.BUILD_NUMBER}"
+          }
           bat """
             terraform init
-            terraform apply -auto-approve -var="namespace=%NAMESPACE%" -var="image_tag=%BUILD_NUMBER%"
+            terraform apply -auto-approve -var="namespace=${env.NAMESPACE}" -var="image_tag=${env.BUILD_NUMBER}"
           """
         }
       }
