@@ -131,14 +131,19 @@ pipeline {
       }
       steps {
         dir('terraform') {
-          script {
-            echo "Using namespace: ${env.NAMESPACE}"
-            echo "Using image tag: ${env.BUILD_NUMBER}"
+          withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+            script {
+              echo "Using namespace: ${env.NAMESPACE}"
+              echo "Using kubeconfig: ${KUBECONFIG}"
+            }
+            bat """
+              terraform init
+              terraform apply -auto-approve ^
+                -var="namespace=${env.NAMESPACE}" ^
+                -var="image_tag=${env.BUILD_NUMBER}" ^
+                -var="kubeconfig_path=%KUBECONFIG%"
+            """
           }
-          bat """
-            terraform init
-            terraform apply -auto-approve -var="namespace=${env.NAMESPACE}" -var="image_tag=${env.BUILD_NUMBER}"
-          """
         }
       }
     }
