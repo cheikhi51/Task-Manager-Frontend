@@ -163,13 +163,16 @@ pipeline {
         dir('ArgoCD/manifests') {
           withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
             bat """
-              kubectl use-context minikube 
-              kubectl apply -f . --n ${env.NAMESPACE}
+              powershell -Command "(Get-Content task-manager-backend.yaml) -replace 'IMAGE_TAG', '${env.BUILD_NUMBER}' | Set-Content task-manager-backend.yaml"
+              
+              powershell -Command "(Get-Content task-manager-frontend.yaml) -replace 'IMAGE_TAG', '${env.BUILD_NUMBER}' | Set-Content task-manager-frontend.yaml"
+
+              kubectl use-context minikube
+              kubectl apply -f . -n ${env.NAMESPACE}
             """
           }
         }
       }
-      
     }
 
     stage('Cleanup PR Environment') {
