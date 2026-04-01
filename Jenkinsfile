@@ -127,7 +127,7 @@ pipeline {
 
     stage('Debug K8s Access') {
       steps {
-        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+        withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
           bat """
             kubectl get nodes --kubeconfig=%KUBECONFIG%
           """
@@ -141,7 +141,7 @@ pipeline {
       }
       steps {
         dir('terraform') {
-          withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+          withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
             script {
               echo "Using namespace: ${env.NAMESPACE}"
               echo "Using kubeconfig: ${KUBECONFIG}"
@@ -161,10 +161,10 @@ pipeline {
     stage('Minikube deployment') {
       steps {
         dir('ArgoCD/manifests') {
-          withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+          withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
             bat """
-              echo "Using kubeconfig: %KUBECONFIG%"
-              kubectl apply -f . --kubeconfig=%KUBECONFIG% --n ${env.NAMESPACE}
+              kubectl use-context minikube 
+              kubectl apply -f . --n ${env.NAMESPACE}
             """
           }
         }
