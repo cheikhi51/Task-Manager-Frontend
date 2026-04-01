@@ -148,32 +148,18 @@ pipeline {
       }
     }
 
-    stage('Update GitOps Repo') {
+    stage('Minikube deployment') {
       steps {
-        dir('ArgoCD') {
-          withCredentials([usernamePassword(
-            credentialsId: 'git-creds',
-            usernameVariable: 'GIT_USERNAME',
-            passwordVariable: 'GIT_PASSWORD'
-          )]) {
-
-            bat '''
-              git config user.email "ci@jenkins.com"
-              git config user.name "Jenkins CI"
-
-              REM Update backend image
-              powershell -Command "(Get-Content task-manager-backend.yaml) -replace 'image: .*', 'image: ${BACKEND_IMAGE}:${BUILD_NUMBER}' | Set-Content task-manager-backend.yaml"
-
-              REM Update frontend image
-              powershell -Command "(Get-Content task-manager-frontend.yaml) -replace 'image: .*', 'image: ${FRONTEND_IMAGE}:${BUILD_NUMBER}' | Set-Content task-manager-frontend.yaml"
-              
-              git add .
-              git diff --cached --quiet || git commit -m "Update image to build ${BUILD_NUMBER}"
-              git push https://%GIT_USERNAME%:%GIT_PASSWORD%@github.com/cheikhi51/Task-Manager-K8s.git HEAD:main
-            '''
+        dir('ArgoCD/manifests') {
+          withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+            bat """
+              echo "Using kubeconfig: %KUBECONFIG%"
+              kubectl apply -f . --kubeconfig=%KUBECONFIG% --n ${env.NAMESPACE}
+            """
           }
         }
       }
+      
     }
 
     stage('Cleanup PR Environment') {
