@@ -125,6 +125,16 @@ pipeline {
       }
     }
 
+    stage('Debug K8s Access') {
+      steps {
+        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+          bat """
+            kubectl get nodes --kubeconfig=%KUBECONFIG%
+          """
+        }
+      }
+    }
+
     stage('Terraform Apply') {
       when {
         expression { env.CHANGE_ID == null }
