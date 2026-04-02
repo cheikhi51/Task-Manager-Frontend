@@ -173,13 +173,19 @@ pipeline {
 
     stage('Cleanup PR Environment') {
       when {
-        expression { env.CHANGE_ID && env.CHANGE_TARGET == 'closed' }
+        expression { env.CHANGE_ID != null }
       }
       steps {
         dir('terraform') {
-          bat """
-            terraform destroy -auto-approve -var="namespace=pr-${env.CHANGE_ID}"
-          """
+          withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
+            bat """
+              terraform init
+              terraform destroy -auto-approve ^
+                -var="namespace=pr-${env.CHANGE_ID}" ^
+                -var="image_tag=${env.BUILD_NUMBER}" ^
+                -var="kubeconfig_path=C:\\Program Files\\Jenkins\\Kube\\config"
+            """
+          }
         }
       }
     }
