@@ -128,9 +128,8 @@ pipeline {
     stage('Debug K8s Access') {
       steps {
         withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
-          bat """
-            kubectl get nodes --kubeconfig=%KUBECONFIG%
-          """
+          bat 'kubectl config use-context minikube'
+          bat 'kubectl get nodes'
         }
       }
     }
@@ -144,14 +143,13 @@ pipeline {
           withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
             script {
               echo "Using namespace: ${env.NAMESPACE}"
-              echo "Using kubeconfig: ${KUBECONFIG}"
             }
             bat """
               terraform init
               terraform apply -auto-approve ^
                 -var="namespace=${env.NAMESPACE}" ^
                 -var="image_tag=${env.BUILD_NUMBER}" ^
-                -var="kubeconfig_path=%KUBECONFIG%"
+                -var="kubeconfig_path=C:\\Program Files\\Jenkins\\Kube\\config"
             """
           }
         }
@@ -164,10 +162,8 @@ pipeline {
           withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
             bat """
               powershell -Command "(Get-Content task-manager-backend.yaml) -replace 'IMAGE_TAG', '${env.BUILD_NUMBER}' | Set-Content task-manager-backend.yaml"
-              
               powershell -Command "(Get-Content task-manager-frontend.yaml) -replace 'IMAGE_TAG', '${env.BUILD_NUMBER}' | Set-Content task-manager-frontend.yaml"
-
-              kubectl use-context minikube
+              kubectl config use-context minikube
               kubectl apply -f . -n ${env.NAMESPACE}
             """
           }
