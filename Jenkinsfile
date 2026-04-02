@@ -6,7 +6,11 @@ pipeline {
     maven 'Maven3'
     nodejs 'node18'
   }
-
+  parameters {
+    string(name: 'MANUAL_PR_ID', defaultValue: '', description: 'PR number to cleanup (classic pipeline only)')
+    booleanParam(name: 'RUN_CLEANUP', defaultValue: false, description: 'Trigger PR environment cleanup')
+    string(name: 'PR_TTL_MINUTES', defaultValue: '30', description: 'Durée de vie de l environnement PR en minutes')
+  }
   environment {
     DOCKERHUB_CREDS = credentials('dockerhub-creds')
     SONAR_PROJECT_KEY_BACKEND = 'backend-app'
@@ -116,14 +120,23 @@ pipeline {
     stage('Generate Namespace') {
       steps {
         script {
-          if (env.CHANGE_ID) {
-            env.NAMESPACE = "pr-${env.CHANGE_ID}"
+          // Resolve PR ID from either source
+          def prId = env.CHANGE_ID ?: params.MANUAL_PR_ID
+
+          if (prId) {
+            env.NAMESPACE = "pr-${prId}"
+            env.RESOLVED_PR_ID = prId
           } else {
             env.NAMESPACE = "task-manager-dev"
+            env.RESOLVED_PR_ID = ''
           }
+
+          echo "Resolved namespace: ${env.NAMESPACE}"
+          echo "Resolved PR ID: ${env.RESOLVED_PR_ID}"
         }
       }
     }
+
 
     stage('Debug K8s Access') {
       steps {
@@ -171,17 +184,31 @@ pipeline {
       }
     }
 
-    stage('Cleanup PR Environment') {
+    stage('Schedule PR Cleanup') {
       when {
-        expression { env.CHANGE_ID != null }
+        anyOf {
+          expression { env.CHANGE_ID != null }
+          expression { params.RUN_CLEANUP == true && params.MANUAL_PR_ID != '' }
+        }
       }
       steps {
+        script {
+          def ttl = params.PR_TTL_MINUTES.toInteger()
+          def prId = env.CHANGE_ID ?: params.MANUAL_PR_ID
+
+          echo "⏳ L'environnement pr-${prId} sera détruit dans ${ttl} minutes..."
+
+          // Attendre la durée spécifiée
+          sleep(time: ttl, unit: 'MINUTES')
+
+          echo "🗑️ Destruction de l'environnement pr-${prId}..."
+        }
         dir('terraform') {
           withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
             bat """
               terraform init
               terraform destroy -auto-approve ^
-                -var="namespace=pr-${env.CHANGE_ID}" ^
+                -var="namespace=pr-${env.CHANGE_ID ?: params.MANUAL_PR_ID}" ^
                 -var="image_tag=${env.BUILD_NUMBER}" ^
                 -var="kubeconfig_path=C:\\Program Files\\Jenkins\\Kube\\config"
             """
@@ -189,8 +216,7 @@ pipeline {
         }
       }
     }
-
-  }
+}
 
   post {
     success {
