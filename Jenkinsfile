@@ -120,19 +120,17 @@ pipeline {
     stage('Generate Namespace') {
       steps {
         script {
-          // Resolve PR ID from either source
-          def prId = env.CHANGE_ID ?: params.MANUAL_PR_ID
+          def prId = env.CHANGE_ID?.trim() ?: params.MANUAL_PR_ID?.trim()
 
-          if (prId) {
+          if (prId && prId != '') {
             env.NAMESPACE = "pr-${prId}"
             env.RESOLVED_PR_ID = prId
+            echo "✅ PR détectée → namespace: ${env.NAMESPACE}"
           } else {
             env.NAMESPACE = "task-manager-dev"
             env.RESOLVED_PR_ID = ''
+            echo "✅ Pas de PR → namespace: ${env.NAMESPACE}"
           }
-
-          echo "Resolved namespace: ${env.NAMESPACE}"
-          echo "Resolved PR ID: ${env.RESOLVED_PR_ID}"
         }
       }
     }
@@ -149,16 +147,14 @@ pipeline {
 
     stage('Terraform Apply') {
       when {
-        expression { env.CHANGE_ID == null }
+        expression { env.RESOLVED_PR_ID == '' }
       }
       steps {
         dir('terraform') {
           withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
-            script {
-              echo "Using namespace: ${env.NAMESPACE}"
-            }
             bat """
-              terraform init
+              terraform init -reconfigure ^
+                -backend-config="path=states/${env.NAMESPACE}.tfstate"
               terraform apply -auto-approve ^
                 -var="namespace=${env.NAMESPACE}" ^
                 -var="image_tag=${env.BUILD_NUMBER}" ^
@@ -188,30 +184,30 @@ pipeline {
       when {
         anyOf {
           expression { env.CHANGE_ID != null }
-          expression { params.RUN_CLEANUP == true && params.MANUAL_PR_ID != '' }
+          expression { params.RUN_CLEANUP == true && params.MANUAL_PR_ID?.trim() != '' }
         }
       }
       steps {
         script {
           def ttl = params.PR_TTL_MINUTES.toInteger()
-          def prId = env.CHANGE_ID ?: params.MANUAL_PR_ID
-
-          echo " L'environnement pr-${prId} sera détruit dans ${ttl} minutes..."
-
-          // Attendre la durée spécifiée
+          def prId = env.CHANGE_ID?.trim() ?: params.MANUAL_PR_ID?.trim()
+          echo "⏳ Destruction de pr-${prId} dans ${ttl} minutes..."
           sleep(time: ttl, unit: 'MINUTES')
-
-          echo "🗑️ Destruction de l'environnement pr-${prId}..."
+          echo "🗑️ Destruction de pr-${prId}..."
         }
         dir('terraform') {
           withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
-            bat """
-              terraform init
-              terraform destroy -auto-approve ^
-                -var="namespace=pr-${env.CHANGE_ID ?: params.MANUAL_PR_ID}" ^
-                -var="image_tag=${env.BUILD_NUMBER}" ^
-                -var="kubeconfig_path=C:\\Program Files\\Jenkins\\Kube\\config"
-            """
+            script {
+              def prId = env.CHANGE_ID?.trim() ?: params.MANUAL_PR_ID?.trim()
+              bat """
+                terraform init -reconfigure ^
+                  -backend-config="path=states/pr-${prId}.tfstate"
+                terraform destroy -auto-approve ^
+                  -var="namespace=pr-${prId}" ^
+                  -var="image_tag=${env.BUILD_NUMBER}" ^
+                  -var="kubeconfig_path=C:\\Program Files\\Jenkins\\Kube\\config"
+              """
+            }
           }
         }
       }
