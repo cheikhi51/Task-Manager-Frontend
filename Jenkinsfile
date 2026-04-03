@@ -196,7 +196,7 @@ pipeline {
           def ttl = params.PR_TTL_MINUTES.toInteger()
           def prId = env.CHANGE_ID ?: params.MANUAL_PR_ID
 
-          echo "⏳ L'environnement pr-${prId} sera détruit dans ${ttl} minutes..."
+          echo " L'environnement pr-${prId} sera détruit dans ${ttl} minutes..."
 
           // Attendre la durée spécifiée
           sleep(time: ttl, unit: 'MINUTES')
