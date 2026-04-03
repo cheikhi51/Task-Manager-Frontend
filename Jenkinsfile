@@ -124,7 +124,7 @@ pipeline {
 
           if (prId && prId != '') {
             env.NAMESPACE = "pr-${prId}"
-            env.RESOLVED_PR_ID = prId
+            env.RESOLVED_PR_ID = prId.ToInteger()
             echo "✅ PR détectée → namespace: ${env.NAMESPACE}"
           } else {
             env.NAMESPACE = "task-manager-dev"
