@@ -146,13 +146,11 @@ pipeline {
     }
 
     stage('Terraform Apply') {
-      when {
-        expression { env.RESOLVED_PR_ID == '' }
-      }
       steps {
         dir('terraform') {
           withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
             bat """
+              if not exist states mkdir states
               terraform init -reconfigure ^
                 -backend-config="path=states/${env.NAMESPACE}.tfstate"
               terraform apply -auto-approve ^
@@ -200,6 +198,7 @@ pipeline {
             script {
               def prId = env.CHANGE_ID?.trim() ?: params.MANUAL_PR_ID?.trim()
               bat """
+                if not exist states mkdir states
                 terraform init -reconfigure ^
                   -backend-config="path=states/pr-${prId}.tfstate"
                 terraform destroy -auto-approve ^
