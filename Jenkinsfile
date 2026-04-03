@@ -17,7 +17,6 @@ pipeline {
     SONAR_PROJECT_KEY_FRONTEND = 'frontend-app'
     FRONTEND_IMAGE = 'mohamed510/task-manager-frontend'
     BACKEND_IMAGE = 'mohamed510/task-manager-backend'
-    NAMESPACE = 'task-manager-dev'
   }
 
   stages {
