@@ -8,13 +8,12 @@ pipeline {
   }
   parameters {
     string(name: 'MANUAL_PR_ID', defaultValue: '', description: 'PR number to cleanup (classic pipeline only)')
-    booleanParam(name: 'RUN_CLEANUP', defaultValue: false, description: 'Trigger PR environment cleanup')
-    string(name: 'PR_TTL_MINUTES', defaultValue: '30', description: 'Durée de vie de l environnement PR en minutes')
+    string(name: 'PR_TTL_MINUTES', defaultValue: '30', description: 'Time to live for PR environment in minutes')
   }
   environment {
     DOCKERHUB_CREDS = credentials('dockerhub-creds')
-    SONAR_PROJECT_KEY_BACKEND = 'backend-app'
-    SONAR_PROJECT_KEY_FRONTEND = 'frontend-app'
+    SONAR_PROJECT_KEY_BACKEND = 'task-manager-backend'
+    SONAR_PROJECT_KEY_FRONTEND = 'task-manager-frontend'
     FRONTEND_IMAGE = 'mohamed510/task-manager-frontend'
     BACKEND_IMAGE = 'mohamed510/task-manager-backend'
   }
@@ -91,6 +90,8 @@ pipeline {
             bat '''
               mvn sonar:sonar ^
               -Dsonar.projectKey=%SONAR_PROJECT_KEY_BACKEND%
+              -Dsonar.projectkey=%SONAR_PROJECT_KEY_FRONTEND%
+              -Dsonar.host.url=%SONAR_HOST_URL%
             '''
           }
         }
@@ -122,7 +123,7 @@ pipeline {
           def prId = env.CHANGE_ID?.trim() ?: params.MANUAL_PR_ID?.trim()
 
           if (prId && prId != '') {
-            env.NAMESPACE = "pr-${prId}"
+            env.NAMESPACE = "pr-${prId}-#${env.BUILD_NUMBER}"
             env.RESOLVED_PR_ID = prId.toInteger()
             echo "✅ PR détectée → namespace: ${env.NAMESPACE}"
           } else {
@@ -177,39 +178,45 @@ pipeline {
       }
     }
 
-    stage('Schedule PR Cleanup') {
-      when {
-        anyOf {
-          expression { env.CHANGE_ID != null }
-          expression { params.RUN_CLEANUP == true && params.MANUAL_PR_ID?.trim() != '' }
-        }
-      }
-      steps {
+    stage('Trigger PR Cleanup') {
+    steps {
         script {
-          def ttl = params.PR_TTL_MINUTES.toInteger()
-          def prId = env.CHANGE_ID?.trim() ?: params.MANUAL_PR_ID?.trim()
-          echo "⏳ Destruction de pr-${prId} dans ${ttl} minutes..."
-          sleep(time: ttl, unit: 'MINUTES')
-          echo "🗑️ Destruction de pr-${prId}..."
-        }
-        dir('terraform') {
-          withEnv(['KUBECONFIG=C:\\Program Files\\Jenkins\\Kube\\config']) {
-            script {
-              def prId = env.CHANGE_ID?.trim() ?: params.MANUAL_PR_ID?.trim()
-              bat """
-                if not exist states mkdir states
-                terraform init -reconfigure ^
-                  -backend-config="path=states/pr-${prId}.tfstate"
-                terraform destroy -auto-approve ^
-                  -var="namespace=pr-${prId}" ^
-                  -var="image_tag=${env.BUILD_NUMBER}" ^
-                  -var="kubeconfig_path=C:\\Program Files\\Jenkins\\Kube\\config"
-              """
+            def prId = env.CHANGE_ID?.trim() ?: params.MANUAL_PR_ID?.trim()
+            def namespace = "pr-${prId}-#${env.BUILD_NUMBER}"
+
+            def userInput
+
+            try {
+                timeout(time: 30, unit: 'MINUTES') {
+                    userInput = input(
+                        message: "Veux-tu lancer le Cleanup du namespace ${namespace} ?",
+                        ok: 'Oui, lancer le Cleanup',
+                        parameters: [
+                            string(
+                                name: 'PR_TTL_MINUTES',
+                                defaultValue: params.PR_TTL_MINUTES,
+                                description: 'Temps avant destruction (minutes)'
+                            )
+                        ]
+                    )
+                }
+
+                build job: 'PR-Cleanup',
+                      wait: false,
+                      parameters: [
+                          string(name: 'PR_ID',          value: prId),
+                          string(name: 'NAMESPACE',      value: namespace),
+                          string(name: 'BUILD_NUMBER',   value: "${env.BUILD_NUMBER}"),
+                          string(name: 'PR_TTL_MINUTES', value: userInput)
+                      ]
+
+            } catch (err) {
+                echo " Cleanup ignoré (timeout ou annulé) → namespace ${namespace} conservé"
+                currentBuild.result = 'SUCCESS'
             }
-          }
         }
-      }
     }
+  }
 }
 
   post {
