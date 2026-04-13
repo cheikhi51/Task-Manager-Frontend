@@ -123,7 +123,7 @@ pipeline {
           def prId = env.CHANGE_ID?.trim() ?: params.MANUAL_PR_ID?.trim()
 
           if (prId && prId != '') {
-            env.NAMESPACE = "pr-${prId}-#${env.BUILD_NUMBER}"
+            env.NAMESPACE = "pr-${prId}-${env.BUILD_NUMBER}"
             env.RESOLVED_PR_ID = prId.toInteger()
             echo "✅ PR détectée → namespace: ${env.NAMESPACE}"
           } else {
@@ -182,7 +182,7 @@ pipeline {
     steps {
         script {
             def prId = env.CHANGE_ID?.trim() ?: params.MANUAL_PR_ID?.trim()
-            def namespace = "pr-${prId}-#${env.BUILD_NUMBER}"
+            def namespace = "pr-${prId}-${env.BUILD_NUMBER}"
 
             def userInput
 
