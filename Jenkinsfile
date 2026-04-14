@@ -87,13 +87,29 @@ pipeline {
       steps {
         withSonarQubeEnv('SonarQube') {
           dir('backend') {
-            bat '''
+            bat """
               mvn sonar:sonar ^
-              -Dsonar.projectKey=%SONAR_PROJECT_KEY_BACKEND%
-              -Dsonar.projectkey=%SONAR_PROJECT_KEY_FRONTEND%
+              -Dsonar.projectKey=%SONAR_PROJECT_KEY_BACKEND% ^
               -Dsonar.host.url=%SONAR_HOST_URL%
-            '''
+            """
           }
+          dir('frontend') {
+            bat """
+              sonar-scanner ^
+              -Dsonar.projectKey=%SONAR_PROJECT_KEY_FRONTEND% ^
+              -Dsonar.sources=src ^
+              -Dsonar.host.url=%SONAR_HOST_URL% ^
+              -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            """
+          }
+        }
+      }
+    }
+
+    stage('Quality Gate') {
+      steps {
+        timeout(time: 5, unit: 'MINUTES') {
+          waitForQualityGate abortPipeline: true
         }
       }
     }
