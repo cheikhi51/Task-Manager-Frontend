@@ -78,6 +78,7 @@ pipeline {
           bat '''
             npm install
             npm run build
+            npm test -- --coverage --watchAll=false
           '''
         }
       }
@@ -95,7 +96,7 @@ pipeline {
           }
           dir('frontend') {
             bat """
-              sonar-scanner ^
+              sonar-scanner  ^
               -Dsonar.projectKey=%SONAR_PROJECT_KEY_FRONTEND% ^
               -Dsonar.sources=src ^
               -Dsonar.host.url=%SONAR_HOST_URL% ^
