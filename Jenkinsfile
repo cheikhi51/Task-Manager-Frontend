@@ -85,27 +85,33 @@ pipeline {
     }
 
     stage('SonarQube Analysis') {
-      steps {
-        withSonarQubeEnv('SonarQube') {
-          dir('backend') {
-            bat """
-              mvn sonar:sonar ^
-              -Dsonar.projectKey=%SONAR_PROJECT_KEY_BACKEND% ^
-              -Dsonar.host.url=%SONAR_HOST_URL%
-            """
-          }
-          dir('frontend') {
-            bat """
-              sonar-scanner  ^
-              -Dsonar.projectKey=%SONAR_PROJECT_KEY_FRONTEND% ^
-              -Dsonar.sources=src ^
-              -Dsonar.host.url=%SONAR_HOST_URL% ^
-              -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-            """
-          }
+  steps {
+    withSonarQubeEnv('SonarQube') {
+      script {
+        def scannerHome = tool 'SonarScanner'
+        
+        dir('backend') {
+          bat """
+            mvn sonar:sonar ^
+            -Dsonar.projectKey=%SONAR_PROJECT_KEY_BACKEND% ^
+            -Dsonar.host.url=%SONAR_HOST_URL%
+          """
+        }
+
+        
+        dir('frontend') {
+          bat """
+            "${scannerHome}\\bin\\sonar-scanner.bat" ^
+            -Dsonar.projectKey=%SONAR_PROJECT_KEY_FRONTEND% ^
+            -Dsonar.sources=src ^
+            -Dsonar.host.url=%SONAR_HOST_URL% ^
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+          """
         }
       }
     }
+  }
+}
 
     stage('Quality Gate') {
       steps {
