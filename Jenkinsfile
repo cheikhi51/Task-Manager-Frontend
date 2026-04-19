@@ -8,7 +8,6 @@ pipeline {
   }
   parameters {
     string(name: 'MANUAL_PR_ID', defaultValue: '', description: 'PR number to cleanup (classic pipeline only)')
-    string(name: 'PR_TTL_MINUTES', defaultValue: '30', description: 'Time to live for PR environment in minutes')
   }
   environment {
     DOCKERHUB_CREDS = credentials('dockerhub-creds')
@@ -85,33 +84,22 @@ pipeline {
     }
 
     stage('SonarQube Analysis') {
-  steps {
-    withSonarQubeEnv('SonarQube') {
-      script {
-        def scannerHome = tool 'SonarScanner'
-        
-        dir('backend') {
-          bat """
-            mvn sonar:sonar ^
-            -Dsonar.projectKey=%SONAR_PROJECT_KEY_BACKEND% ^
-            -Dsonar.host.url=%SONAR_HOST_URL%
-          """
-        }
-
-        
-        dir('frontend') {
-          bat """
-            "${scannerHome}\\bin\\sonar-scanner.bat" ^
-            -Dsonar.projectKey=%SONAR_PROJECT_KEY_FRONTEND% ^
-            -Dsonar.sources=src ^
-            -Dsonar.host.url=%SONAR_HOST_URL% ^
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-          """
+      steps {
+        withSonarQubeEnv('SonarQube') {
+          script {
+            def scannerHome = tool 'SonarScanner'
+            
+            dir('backend') {
+              bat """
+                mvn sonar:sonar ^
+                -Dsonar.projectKey=%SONAR_PROJECT_KEY_BACKEND% ^
+                -Dsonar.host.url=%SONAR_HOST_URL%
+              """
+            }
+          }
         }
       }
     }
-  }
-}
 
     stage('Quality Gate') {
       steps {
@@ -148,11 +136,11 @@ pipeline {
           if (prId && prId != '') {
             env.NAMESPACE = "pr-${prId}-${env.BUILD_NUMBER}"
             env.RESOLVED_PR_ID = prId.toInteger()
-            echo "✅ PR détectée → namespace: ${env.NAMESPACE}"
+            echo "PR détectée → namespace: ${env.NAMESPACE}"
           } else {
-            env.NAMESPACE = "task-manager-dev"
+            env.NAMESPACE = "dev"
             env.RESOLVED_PR_ID = ''
-            echo "✅ Pas de PR → namespace: ${env.NAMESPACE}"
+            echo "Pas de PR → namespace: ${env.NAMESPACE}"
           }
         }
       }
@@ -207,31 +195,23 @@ pipeline {
             def prId = env.CHANGE_ID?.trim() ?: params.MANUAL_PR_ID?.trim()
             def namespace = "pr-${prId}-${env.BUILD_NUMBER}"
 
-            def userInput
-
             try {
                 timeout(time: 30, unit: 'MINUTES') {
                     userInput = input(
                         message: "Veux-tu lancer le Cleanup du namespace ${namespace} ?",
-                        ok: 'Oui, lancer le Cleanup',
-                        parameters: [
-                            string(
-                                name: 'PR_TTL_MINUTES',
-                                defaultValue: params.PR_TTL_MINUTES,
-                                description: 'Temps avant destruction (minutes)'
-                            )
-                        ]
+                        ok: 'Oui, lancer le Cleanup'
                     )
                 }
 
-                build job: 'PR-Cleanup',
-                      wait: false,
-                      parameters: [
-                          string(name: 'PR_ID',          value: prId),
-                          string(name: 'NAMESPACE',      value: namespace),
-                          string(name: 'BUILD_NUMBER',   value: "${env.BUILD_NUMBER}"),
-                          string(name: 'PR_TTL_MINUTES', value: userInput)
-                      ]
+                def cleanupBuild = build job: 'PR-Cleanup',
+                wait: false,
+                parameters: [
+                    string(name: 'PR_ID', value: prId),
+                    string(name: 'NAMESPACE', value: namespace),
+                    string(name: 'BUILD_NUMBER', value: "${env.BUILD_NUMBER}")
+                ]
+
+                echo "Cleanup job triggered: ${cleanupBuild?.number}"
 
             } catch (err) {
                 echo " Cleanup ignoré (timeout ou annulé) → namespace ${namespace} conservé"
@@ -245,12 +225,12 @@ pipeline {
   post {
     success {
       echo '========================================='
-      echo 'Pipeline completed successfully! ✅'
+      echo 'Pipeline completed successfully!'
       echo '========================================='
     }
     failure {
       echo '========================================='
-      echo 'Pipeline failed! ❌'
+      echo 'Pipeline failed!'
       echo 'Check the logs above for error details.'
       echo '========================================='
     }
