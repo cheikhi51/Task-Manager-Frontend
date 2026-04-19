@@ -181,6 +181,7 @@ pipeline {
             bat """
               powershell -Command "(Get-Content task-manager-backend.yaml) -replace 'IMAGE_TAG', '${env.BUILD_NUMBER}' | Set-Content task-manager-backend.yaml"
               powershell -Command "(Get-Content task-manager-frontend.yaml) -replace 'IMAGE_TAG', '${env.BUILD_NUMBER}' | Set-Content task-manager-frontend.yaml"
+              powershell -Command "(Get-Content task-manager-network-policy.yaml) -replace 'NAMESPACE', '${env.NAMESPACE}' | Set-Content task-manager-network-policy.yaml"
               kubectl config use-context minikube
               kubectl apply -f . -n ${env.NAMESPACE}
             """
