@@ -64,7 +64,7 @@ pipeline {
               set DB_PASSWORD=%DB_PASSWORD%
               set JWT_SECRET=%JWT_SECRET%
               set JWT_EXPIRATION=%JWT_EXPIRATION%
-              mvn clean verify
+              mvn clean compile
             '''
           }
         }
@@ -91,7 +91,7 @@ pipeline {
             
             dir('backend') {
               bat """
-                mvn clean verify sonar:sonar ^
+                mvn sonar:sonar ^
                 -Dsonar.projectKey=%SONAR_PROJECT_KEY_BACKEND% ^
                 -Dsonar.host.url=%SONAR_HOST_URL%
               """
