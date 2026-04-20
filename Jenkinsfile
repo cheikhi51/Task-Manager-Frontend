@@ -64,7 +64,7 @@ pipeline {
               set DB_PASSWORD=%DB_PASSWORD%
               set JWT_SECRET=%JWT_SECRET%
               set JWT_EXPIRATION=%JWT_EXPIRATION%
-              mvn clean compile
+              mvn clean verify
             '''
           }
         }
@@ -91,7 +91,7 @@ pipeline {
             
             dir('backend') {
               bat """
-                mvn sonar:sonar ^
+                mvn clean verify sonar:sonar ^
                 -Dsonar.projectKey=%SONAR_PROJECT_KEY_BACKEND% ^
                 -Dsonar.host.url=%SONAR_HOST_URL%
               """
@@ -103,7 +103,7 @@ pipeline {
 
     stage('Quality Gate') {
       steps {
-        timeout(time: 5, unit: 'MINUTES') {
+        timeout(time: 10, unit: 'MINUTES') {
           waitForQualityGate abortPipeline: true
         }
       }
