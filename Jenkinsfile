@@ -87,7 +87,7 @@ pipeline {
       steps {
         withSonarQubeEnv('SonarQube') {
           script {
-            def scannerHome = tool 'SonarQubeScanner'
+            def scannerHome = tool 'SonarScanner'
             
             dir('backend') {
               bat """
