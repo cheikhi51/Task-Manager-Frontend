@@ -110,6 +110,15 @@ pipeline {
       }
     }
 
+    stage('Trivy scanning'){
+      steps{
+        bat """
+            trivy image %BACKEND_IMAGE%:%BUILD_NUMBER% --severity HIGH,CRITICAL
+            trivy image %FRONTEND_IMAGE%:%BUILD_NUMBER% --severity HIGH,CRITICAL
+        """
+      }
+    }
+
     stage('Push to Docker Hub') {
       steps {
         bat '''
