@@ -83,7 +83,7 @@ pipeline {
       }
     }
 
-    stage('SonarQube Analysis') {
+    stage('SonarQube Analysis stage') {
       steps {
         withSonarQubeEnv('SonarQube') {
           script {
