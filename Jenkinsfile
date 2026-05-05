@@ -110,7 +110,7 @@ pipeline {
       }
     }
 
-    stage('Trivy scanning'){
+    stage('Trivy image scanning'){
       steps{
         bat """
             trivy image %BACKEND_IMAGE%:%BUILD_NUMBER%
