@@ -113,8 +113,8 @@ pipeline {
     stage('Trivy scanning'){
       steps{
         bat """
-            trivy image %BACKEND_IMAGE%:%BUILD_NUMBER% --severity HIGH,CRITICAL
-            trivy image %FRONTEND_IMAGE%:%BUILD_NUMBER% --severity HIGH,CRITICAL
+            trivy image %BACKEND_IMAGE%:%BUILD_NUMBER%
+            trivy image %FRONTEND_IMAGE%:%BUILD_NUMBER%
         """
       }
     }
