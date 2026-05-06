@@ -110,12 +110,30 @@ pipeline {
       }
     }
 
-    stage('Trivy image scanning'){
-      steps{
-        bat """
-            trivy image %BACKEND_IMAGE%:%BUILD_NUMBER%
-            trivy image %FRONTEND_IMAGE%:%BUILD_NUMBER%
-        """
+    stage('Trivy image scanning') {
+      parallel {
+        stage('Scan Backend image') {
+          steps {
+            bat """
+              trivy image ^
+                --cache-dir "%USERPROFILE%\\.cache\\trivy" ^
+                --scanners vuln ^
+                --severity HIGH,CRITICAL ^
+                %BACKEND_IMAGE%:%BUILD_NUMBER%
+            """
+          }
+        }
+        stage('Scan Frontend image') {
+          steps {
+            bat """
+              trivy image ^
+                --cache-dir "%USERPROFILE%\\.cache\\trivy" ^
+                --scanners vuln ^
+                --severity HIGH,CRITICAL ^
+                %FRONTEND_IMAGE%:%BUILD_NUMBER%
+            """
+          }
+        }
       }
     }
 

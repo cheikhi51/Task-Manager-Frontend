@@ -54,7 +54,7 @@ function Login({ setAuthToken }) {
           <input
             type="email"
             name="email"
-            placeholder="Email address"
+            placeholder="Enter your Email address"
             value={formData.email}
             onChange={handleChange}
             required
@@ -64,7 +64,7 @@ function Login({ setAuthToken }) {
             <input
               type={inputType}
               name="password"
-              placeholder="Password"
+              placeholder="Enter your Password"
               value={formData.password}
               onChange={handleChange}
               className="password-input"
