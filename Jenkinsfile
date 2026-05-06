@@ -112,7 +112,7 @@ pipeline {
 
     stage('Trivy image scanning') {
       parallel {
-        stage('Scan Backend') {
+        stage('Scan Backend image') {
           steps {
             bat """
               trivy image ^
@@ -123,7 +123,7 @@ pipeline {
             """
           }
         }
-        stage('Scan Frontend') {
+        stage('Scan Frontend image') {
           steps {
             bat """
               trivy image ^
