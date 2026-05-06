@@ -101,19 +101,11 @@ pipeline {
       }
     }
 
-    stage('Build Docker Images') {
-      steps {
-        bat '''
-          docker build -t %BACKEND_IMAGE%:%BUILD_NUMBER% backend
-          docker build -t %FRONTEND_IMAGE%:%BUILD_NUMBER% frontend
-        '''
-      }
-    }
-
-    stage('Trivy image scanning') {
+    stage('Build & Scan Docker Images') {
       parallel {
-        stage('Scan Backend image') {
+        stage('Backend') {
           steps {
+            bat "docker build -t %BACKEND_IMAGE%:%BUILD_NUMBER% backend"
             bat """
               trivy image ^
                 --cache-dir "%USERPROFILE%\\.cache\\trivy" ^
@@ -123,8 +115,9 @@ pipeline {
             """
           }
         }
-        stage('Scan Frontend image') {
+        stage('Frontend') {
           steps {
+            bat "docker build -t %FRONTEND_IMAGE%:%BUILD_NUMBER% frontend"
             bat """
               trivy image ^
                 --cache-dir "%USERPROFILE%\\.cache\\trivy" ^
