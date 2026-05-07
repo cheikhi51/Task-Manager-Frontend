@@ -70,7 +70,7 @@ function Signup() {
           <input
             type="text"
             name="name"
-            placeholder="Full name"
+            placeholder="Enter your Full name"
             value={formData.name}
             onChange={handleChange}
             required
@@ -79,7 +79,7 @@ function Signup() {
           <input
             type="email"
             name="email"
-            placeholder="Email address"
+            placeholder="Enter your Email address"
             value={formData.email}
             onChange={handleChange}
             required
@@ -89,7 +89,7 @@ function Signup() {
                       <input
                         type={inputType1}
                         name="password"
-                        placeholder="Password"
+                        placeholder="Enter your Password"
                         value={formData.password}
                         onChange={handleChange}
                         className="password-input"
@@ -111,7 +111,7 @@ function Signup() {
                                 <input
                                   type={inputType2}
                                   name="confirmPassword"
-                                  placeholder="Confirm password"
+                                  placeholder="Confirm your password"
                                   value={formData.confirmPassword}
                                   onChange={handleChange}
                                   className="password-input"

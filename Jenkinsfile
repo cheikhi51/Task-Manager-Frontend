@@ -101,14 +101,24 @@ pipeline {
       }
     }
 
+    stage('Download Trivy DB') {
+      steps {
+        bat """
+          trivy image ^
+            --cache-dir "%USERPROFILE%\\.cache\\trivy" ^
+            --download-db-only
+        """
+      }
+    }
+
     stage('Build & Scan Docker Images') {
       parallel {
         stage('Backend') {
           steps {
-            bat "docker build -t %BACKEND_IMAGE%:%BUILD_NUMBER% backend"
             bat """
               trivy image ^
                 --cache-dir "%USERPROFILE%\\.cache\\trivy" ^
+                --skip-db-update ^
                 --scanners vuln ^
                 --severity HIGH,CRITICAL ^
                 %BACKEND_IMAGE%:%BUILD_NUMBER%
@@ -117,10 +127,10 @@ pipeline {
         }
         stage('Frontend') {
           steps {
-            bat "docker build -t %FRONTEND_IMAGE%:%BUILD_NUMBER% frontend"
             bat """
               trivy image ^
                 --cache-dir "%USERPROFILE%\\.cache\\trivy" ^
+                --skip-db-update ^
                 --scanners vuln ^
                 --severity HIGH,CRITICAL ^
                 %FRONTEND_IMAGE%:%BUILD_NUMBER%
