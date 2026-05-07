@@ -71,7 +71,7 @@ pipeline {
       }
     }
 
-    stage('Frontend Build') {
+    stage('Frontend Build & Test') {
       steps {
         dir('frontend') {
           bat '''
