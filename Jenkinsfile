@@ -115,6 +115,7 @@ pipeline {
       parallel {
         stage('Backend') {
           steps {
+            bat "docker build -t %BACKEND_IMAGE%:%BUILD_NUMBER% backend"
             bat """
               trivy image ^
                 --cache-dir "%USERPROFILE%\\.cache\\trivy" ^
@@ -127,6 +128,7 @@ pipeline {
         }
         stage('Frontend') {
           steps {
+            bat "docker build -t %FRONTEND_IMAGE%:%BUILD_NUMBER% frontend"
             bat """
               trivy image ^
                 --cache-dir "%USERPROFILE%\\.cache\\trivy" ^
