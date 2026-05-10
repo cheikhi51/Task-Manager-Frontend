@@ -62,7 +62,7 @@ function Signup() {
     <div className="signup-container">
       <div className="signup-card">
         <h2>Create Account</h2>
-        <p className="subtitle">Start managing your projects efficiently</p>
+        <p className="subtitle">Start managing your projects efficiently!</p>
 
         {error && <div className="error">{error}</div>}
 
