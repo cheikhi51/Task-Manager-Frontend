@@ -39,22 +39,27 @@ function Signup() {
     setLoading(true);
 
     try {
-      // 🔗 Spring Boot endpoint (adjust URL if needed)
-      const response = await api.post("/auth/register", {
+    const response = await api.post("/auth/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-      });
+    });
 
-      if (!response.ok) {
-        throw new Error("Signup failed");
-      }
+    console.log("Registration successful:", response.data);
 
-      navigate("/login");
+    navigate("/login");
     } catch (err) {
-      setError("Unable to create account");
+        console.error(
+            "Registration failed:",
+            err.response?.data || err
+        );
+
+        setError(
+            err.response?.data?.message ||
+            "Unable to create account"
+        );
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 

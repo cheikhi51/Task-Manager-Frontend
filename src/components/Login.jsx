@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { GoEye } from "react-icons/go";
-import { GoEyeClosed } from "react-icons/go";
+import { GoEye, GoEyeClosed } from "react-icons/go";
 import api from "../api/axios";
+
 function Login({ setAuthToken }) {
   const navigate = useNavigate();
+
   const [inputType, setInputType] = useState("password");
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -23,19 +25,29 @@ function Login({ setAuthToken }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setError("");
     setLoading(true);
 
     try {
       const response = await api.post("/auth/login", formData);
 
-      const data = response.data;
+      const { token } = response.data;
 
-      localStorage.setItem("jwtToken", data.token);
-      setAuthToken(data.token);
+      // Store JWT
+      localStorage.setItem("jwtToken", token);
 
+      // Update application authentication state
+      setAuthToken(token);
+
+      // Redirect after successful login
       navigate("/UserDashboard");
     } catch (err) {
+      console.error(
+        "Login failed:",
+        err.response?.data || err.message
+      );
+
       setError("Invalid email or password");
     } finally {
       setLoading(false);
@@ -45,12 +57,21 @@ function Login({ setAuthToken }) {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h2>Welcome Back</h2>
-        <p className="subtitle">Login to manage your projects</p>
 
-        {error && <div className="error">{error}</div>}
+        <h2>Welcome Back</h2>
+
+        <p className="subtitle">
+          Login to manage your projects
+        </p>
+
+        {error && (
+          <div className="error">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
+
           <input
             type="email"
             name="email"
@@ -61,6 +82,7 @@ function Login({ setAuthToken }) {
           />
 
           <div className="password-wrapper">
+
             <input
               type={inputType}
               name="password"
@@ -71,27 +93,47 @@ function Login({ setAuthToken }) {
               required
             />
 
-            <span
+            <button
               type="button"
               onClick={() =>
-                setInputType(inputType === "password" ? "text" : "password")
+                setInputType(
+                  inputType === "password"
+                    ? "text"
+                    : "password"
+                )
               }
               className="show-password"
+              aria-label={
+                inputType === "password"
+                  ? "Show password"
+                  : "Hide password"
+              }
             >
-              {inputType === "password" ? <GoEye /> : <GoEyeClosed />}
-            </span>
+              {inputType === "password" ? (
+                <GoEye />
+              ) : (
+                <GoEyeClosed />
+              )}
+            </button>
+
           </div>
 
-
-
-          <button type="submit" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+          >
             {loading ? "Logging in..." : "Login"}
           </button>
+
         </form>
 
         <p className="signup-link">
-          Don’t have an account? <Link to="/signup">Create one</Link>
+          Don't have an account?{" "}
+          <Link to="/signup">
+            Create one
+          </Link>
         </p>
+
       </div>
     </div>
   );
