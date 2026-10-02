@@ -93,7 +93,7 @@ function Login({ setAuthToken }) {
               required
             />
 
-            <button
+            <span
               type="button"
               onClick={() =>
                 setInputType(
@@ -114,7 +114,7 @@ function Login({ setAuthToken }) {
               ) : (
                 <GoEyeClosed />
               )}
-            </button>
+            </span>
 
           </div>
 

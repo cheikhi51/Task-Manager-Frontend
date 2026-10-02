@@ -39,27 +39,30 @@ function Signup() {
     setLoading(true);
 
     try {
-    const response = await api.post("/auth/register", {
+      const response = await api.post("/auth/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-    });
+      });
 
-    console.log("Registration successful:", response.data);
+      console.log("STATUS:", response.status);
+      console.log("DATA:", response.data);
 
-    navigate("/login");
+      navigate("/login");
+
     } catch (err) {
-        console.error(
-            "Registration failed:",
-            err.response?.data || err
-        );
+      console.error("Registration error:", err);
+      console.error("Status:", err.response?.status);
+      console.error("Data:", err.response?.data);
+      console.error("Headers:", err.response?.headers);
 
-        setError(
-            err.response?.data?.message ||
-            "Unable to create account"
-        );
+      setError(
+        err.response?.data?.message ||
+        err.response?.data ||
+        "Unable to create account"
+      );
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
